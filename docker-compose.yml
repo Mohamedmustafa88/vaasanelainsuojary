@@ -1,0 +1,57 @@
+services:
+  db:
+    image: postgres:16
+    container_name: elainsuoja-db
+    environment:
+      POSTGRES_USER: elainsuoja
+      POSTGRES_PASSWORD: elainsuoja
+      POSTGRES_DB: elainsuoja
+    ports:
+      - "5433:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      # Kaikki .sql-tiedostot tässä kansiossa ajetaan automaattisesti ensimmäisellä käynnistyskerralla
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U elainsuoja -d elainsuoja"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # --- Lisätään, kun palvelut ovat valmiita (poista kommentit) ---
+  #
+  # server-b:
+  #   build: ./server-b
+  #   container_name: elainsuoja-server-b
+  #   environment:
+  #     DATABASE_URL: postgres://elainsuoja:elainsuoja@db:5432/elainsuoja
+  #     PORT: 3001
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #
+  # server-a:
+  #   build: ./server-a
+  #   container_name: elainsuoja-server-a
+  #   environment:
+  #     DATABASE_URL: postgres://elainsuoja:elainsuoja@db:5432/elainsuoja
+  #     SERVER_B_URL: http://server-b:3001
+  #     PORT: 3000
+  #   ports:
+  #     - "3000:3000"
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #     server-b:
+  #       condition: service_started
+  #
+  # frontend:
+  #   build: ./frontend
+  #   container_name: elainsuoja-frontend
+  #   ports:
+  #     - "8080:80"
+  #   depends_on:
+  #     - server-a
+
+volumes:
+  db_data:
