@@ -1,0 +1,2 @@
+# vaasanelainsuojary
+Web-palvelujen toteutus
